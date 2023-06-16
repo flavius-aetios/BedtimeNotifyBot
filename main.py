@@ -1,18 +1,41 @@
 import telebot
 import config
+import schedule
+from threading import Thread
 
 from time import sleep
 
 from telebot import types
-from datetime import time
+from datetime import datetime, time, timedelta
 
 bot = telebot.TeleBot(config.TOKEN)
 
-beforeTime = time(0, 0)
+beforeTime = time(1, 0)
 idealSleepTime = time(0, 0)
 alarmTime = time(0, 0)
 periodNotifyTime = time(0, 0)
 runFlag = False
+
+
+now = datetime.now()
+
+delta = beforeTime.strftime('%H')
+deltaInt = int(delta)
+
+two_days = timedelta(hours=deltaInt)
+in_two_days = now + two_days
+print(in_two_days) 
+
+
+
+
+
+def notifyMain():
+	print("IN notifyMain LOL!")
+
+	
+
+	if alarmTime - idealSleepTime - beforeTime < 
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -85,10 +108,17 @@ def keyBut(message):
 				markup.add(item1, item2, item3, item4, item5, item6)
 
 				bot.send_message(message.chat.id, 'Периодичность уведомлений', reply_markup=markup)
+
 			case "Запуск!":
+				schedule.every(periodNotifyTime).minute.do()
+
 				bot.send_message(message.chat.id, 'Уведомления запущены!')
-				global runFlag
-				runFlag = True
+
+			case "Стоп!":
+				schedule.clear()
+
+				bot.send_message(message.chat.id, 'Уведомления остановлены!')
+
 			case _:
 				bot.send_message(message.chat.id, 'Я не знаю что ответить😢')
 
@@ -172,6 +202,87 @@ def ideal_9hour30min_pressed(call: types.CallbackQuery):
 	global idealSleepTime
 	idealSleepTime = time(9, 30)
 
+
+# ------------------ALARM TIME------------------
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_7Hour")
+def alarm_7Hour_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>7 часов</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(7, 0)
+
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_7hour30min")
+def alarm_7hour30min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>7 часов 30 минут</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(7, 30)
+
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_8hour")
+def alarm_8hour_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>8 часов</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(8, 0)
+
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_8hour30min")
+def alarm_8hour30min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>8 часов 30 минут</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(8, 30)
+
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_9hour")
+def alarm_9hour_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>9 часов</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(9, 0)
+
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_9hour30min")
+def alarm_9hour30min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>9 часов 30 минут</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(9, 30)
+
+
+# ------------------PERIOD TIME------------------
+@bot.callback_query_handler(func=lambda call: call.data == "periodNotify_1min")
+def periodNotify_1min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Период повторения: <b>1 минута</b>", parse_mode='html',)
+	global periodNotifyTime
+	periodNotifyTime = time(0, 1)
+
+@bot.callback_query_handler(func=lambda call: call.data == "periodNotify_2min")
+def periodNotify_2min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Период повторения: <b>2 минуты</b>", parse_mode='html',)
+	global periodNotifyTime
+	periodNotifyTime = time(0, 2)
+
+@bot.callback_query_handler(func=lambda call: call.data == "periodNotify_3min")
+def periodNotify_3min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Период повторения: <b>3 минуты</b>", parse_mode='html',)
+	global periodNotifyTime
+	periodNotifyTime = time(0, 3)
+
+@bot.callback_query_handler(func=lambda call: call.data == "periodNotify_4min")
+def periodNotify_4min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Период повторения: <b>4 минуты</b>", parse_mode='html',)
+	global periodNotifyTime
+	periodNotifyTime = time(0, 4)
+
+@bot.callback_query_handler(func=lambda call: call.data == "periodNotify_5min")
+def periodNotify_5min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Период повторения: <b>5 минут</b>", parse_mode='html',)
+	global periodNotifyTime
+	periodNotifyTime = time(0, 5)
+
+@bot.callback_query_handler(func=lambda call: call.data == "periodNotify_10min")
+def periodNotify_10min_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Период повторения: <b>10 минут</b>", parse_mode='html',)
+	global periodNotifyTime
+	periodNotifyTime = time(0, 10)
+
+def schedule_checker():
+    while True:
+        schedule.run_pending()
+        sleep(1)
+
 # @bot.callback_query_handler(func=lambda call: True)
 # def callback_inline(call):
 # 	try:
@@ -192,6 +303,10 @@ def ideal_9hour30min_pressed(call: types.CallbackQuery):
 # 		print(repr(e))
 
 # RUN
+
+scheduleThread = Thread(target=schedule_checker)
+scheduleThread.daemon = True
+scheduleThread.start()
 
 bot.polling(none_stop=True)
 
