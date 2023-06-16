@@ -12,6 +12,7 @@ beforeTime = time(0, 0)
 idealSleepTime = time(0, 0)
 alarmTime = time(0, 0)
 periodNotifyTime = time(0, 0)
+runFlag = False
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -22,14 +23,15 @@ def welcome(message):
 	item2 = types.KeyboardButton("2. Идеальное время сна")
 	item3 = types.KeyboardButton("3. Время будильника")
 	item4 = types.KeyboardButton("4. Периодичность уведомлений")
+	item5 = types.KeyboardButton("Запуск!")
 
-	markup.add(item1, item2, item3, item4)
+	markup.add(item1, item2, item3, item4, item5)
 
 	bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - <b>{1.first_name}</b>, бот созданный чтобы быть подопытным кроликом.".format(message.from_user, bot.get_me()),
 		parse_mode='html', reply_markup=markup)
 
 @bot.message_handler(content_types=['text'])
-def lalala(message):
+def keyBut(message):
 	if message.chat.type == 'private':
 		match message.text:
 			case "1. За сколько до сна":
@@ -83,6 +85,10 @@ def lalala(message):
 				markup.add(item1, item2, item3, item4, item5, item6)
 
 				bot.send_message(message.chat.id, 'Периодичность уведомлений', reply_markup=markup)
+			case "Запуск!":
+				bot.send_message(message.chat.id, 'Уведомления запущены!')
+				global runFlag
+				runFlag = True
 			case _:
 				bot.send_message(message.chat.id, 'Я не знаю что ответить😢')
 
@@ -97,31 +103,24 @@ def before_15min_pressed(call: types.CallbackQuery):
 	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Уведомления до сна: <b>за 15 мин</b>", parse_mode='html',)
 	global beforeTime
 	beforeTime = time(0, 15)
-	
-	while(1):
-		print(beforeTime)
-		sleep(1)
 
 @bot.callback_query_handler(func=lambda call: call.data == "before_30min")
 def before_30min_pressed(call: types.CallbackQuery):
 	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Уведомления до сна: <b>за 30 минут</b>", parse_mode='html',)
 	global beforeTime
 	beforeTime = time(0, 30)
-	print(beforeTime)
 
 @bot.callback_query_handler(func=lambda call: call.data == "before_45min")
 def before_45min_pressed(call: types.CallbackQuery):
 	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Уведомления до сна: <b>за 45 минут</b>", parse_mode='html',)
 	global beforeTime
 	beforeTime = time(0, 45)
-	print(beforeTime)
 
 @bot.callback_query_handler(func=lambda call: call.data == "before_1hour")
 def before_1hour_pressed(call: types.CallbackQuery):
 	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Уведомления до сна: <b>за 1 час</b>", parse_mode='html',)
 	global beforeTime
 	beforeTime = time(1, 0)
-	print(beforeTime)
 
 @bot.callback_query_handler(func=lambda call: call.data == "before_1hour45min")
 def before_1hour45min_pressed(call: types.CallbackQuery):
