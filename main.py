@@ -17,25 +17,35 @@ periodNotifyTime = time(0, 0)
 runFlag = False
 
 
-now = datetime.now()
-
-delta = beforeTime.strftime('%H')
-deltaInt = int(delta)
-
-two_days = timedelta(hours=deltaInt)
-in_two_days = now + two_days
-print(in_two_days) 
-
-
-
-
 
 def notifyMain():
 	print("IN notifyMain LOL!")
 
+	beforeTimeDelta 		= timedelta(hours = beforeTime.hour, 			minutes = beforeTime.minute)
+	idealSleepTimeDelta 	= timedelta(hours = idealSleepTime.hour, 		minutes = idealSleepTime.minute)
+
+	alarmTimeDelta 			= datetime.now()
+	alarmTimeDelta 			= alarmTimeDelta.replace(day = alarmTimeDelta.day + 1, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
+	print(alarmTimeDelta)
+
+	now = datetime.now()
+	print(now)
+
+	delta = timedelta(hours = beforeTime.hour)
+	print(delta)
+
+	now = now - delta
+	print(now)
+
+	less = alarmTimeDelta - idealSleepTimeDelta - beforeTimeDelta
+	print("\nLess = ", less)
+
+	more = alarmTimeDelta - idealSleepTimeDelta + timedelta(hours=2)
+	print("More = ", more)
+
 	
 
-	if alarmTime - idealSleepTime - beforeTime < 
+
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -110,7 +120,7 @@ def keyBut(message):
 				bot.send_message(message.chat.id, 'Периодичность уведомлений', reply_markup=markup)
 
 			case "Запуск!":
-				schedule.every(periodNotifyTime).minute.do()
+				schedule.every(periodNotifyTime.minute).minute.do(notifyMain)
 
 				bot.send_message(message.chat.id, 'Уведомления запущены!')
 
