@@ -11,28 +11,39 @@ from datetime import datetime, time, timedelta
 bot = telebot.TeleBot(config.TOKEN)
 
 beforeTime = time(1, 0)
-idealSleepTime = time(0, 0)
-alarmTime = time(0, 0)
-periodNotifyTime = time(0, 0)
+idealSleepTime = time(8, 30)
+alarmTime = time(2, 28)
+periodNotifyTime = time(4, 0)
 runFlag = False
 
 
 
-def notifyMain():
+def notifyMain(chatId):
 	print("IN notifyMain LOL!")
+ 
 
 	beforeTimeDelta 		= timedelta(hours = beforeTime.hour, 			minutes = beforeTime.minute)
 	idealSleepTimeDelta 	= timedelta(hours = idealSleepTime.hour, 		minutes = idealSleepTime.minute)
 
-	alarmTimeDelta 			= datetime.now()
-	alarmTimeDelta 			= alarmTimeDelta.replace(day = alarmTimeDelta.day + 1, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
-	print(alarmTimeDelta)
+	
 
-	now = datetime.now()
-	print(now)
+	nowTime = datetime.now()
+	print(nowTime)
+
+	alarmTimeDelta = datetime.now()
+
+	if nowTime.time() > alarmTime:
+		alarmTimeDelta 			= alarmTimeDelta.replace(day = alarmTimeDelta.day + 1, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
+		print("alarmTimeDelta ", alarmTimeDelta)
+	else:
+		alarmTimeDelta 			= alarmTimeDelta.replace(day = alarmTimeDelta.day, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
+		print("alarmTimeDelta ", alarmTimeDelta)
+
 
 	delta = timedelta(hours = beforeTime.hour)
 	print(delta)
+
+	now = datetime.now()
 
 	now = now - delta
 	print(now)
@@ -43,9 +54,34 @@ def notifyMain():
 	more = alarmTimeDelta - idealSleepTimeDelta + timedelta(hours=2)
 	print("More = ", more)
 
-	
+	leftTime = alarmTimeDelta - idealSleepTimeDelta - datetime.now()
+	print("leftTime = ", leftTime)
 
 
+
+	if datetime.now() > alarmTimeDelta - idealSleepTimeDelta - beforeTimeDelta and datetime.now() < alarmTimeDelta - idealSleepTimeDelta + timedelta(hours=2):
+		global msg
+		try: msg
+		except NameError: msg = None
+
+		if msg is None:
+			print("MSG IS NOT DEFINE!")
+		else:
+			bot.delete_message(chatId, msg.message_id)
+			print("DEL MSG")
+
+		msg = bot.send_message(chatId, 'Пора спать через ' + ':'.join(str(leftTime).split(':')[:2]) + "! Вставать в " + alarmTime.strftime("%H:%M"))
+	else:
+		try: msg
+		except NameError: msg = None
+
+		if msg is None:
+			print("MSG IS NOT DEFINE!")
+		else:
+			bot.delete_message(chatId, msg.message_id)
+			print("DEL MSG")
+
+		msg = bot.send_message(chatId, 'Пора спать через ' + ':'.join(str(leftTime).split(':')[:2]) + "! Вставать в " + alarmTime.strftime("%H:%M"))
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -57,8 +93,9 @@ def welcome(message):
 	item3 = types.KeyboardButton("3. Время будильника")
 	item4 = types.KeyboardButton("4. Периодичность уведомлений")
 	item5 = types.KeyboardButton("Запуск!")
+	item6 = types.KeyboardButton("Стоп!")
 
-	markup.add(item1, item2, item3, item4, item5)
+	markup.add(item1, item2, item3, item4, item5, item6)
 
 	bot.send_message(message.chat.id, "Добро пожаловать, {0.first_name}!\nЯ - <b>{1.first_name}</b>, бот созданный чтобы быть подопытным кроликом.".format(message.from_user, bot.get_me()),
 		parse_mode='html', reply_markup=markup)
@@ -120,7 +157,8 @@ def keyBut(message):
 				bot.send_message(message.chat.id, 'Периодичность уведомлений', reply_markup=markup)
 
 			case "Запуск!":
-				schedule.every(periodNotifyTime.minute).minute.do(notifyMain)
+				# schedule.every(periodNotifyTime.minute).minute.do(notifyMain, message.chat.id)
+				schedule.every(15).seconds.do(notifyMain, message.chat.id)
 
 				bot.send_message(message.chat.id, 'Уведомления запущены!')
 
@@ -132,10 +170,7 @@ def keyBut(message):
 			case _:
 				bot.send_message(message.chat.id, 'Я не знаю что ответить😢')
 
-# try:
-	
-# except Exception as e:
-# 	print(repr(e))
+
 
 # ---------------BEFORE TIME-----------------
 @bot.callback_query_handler(func=lambda call: call.data == "before_15min")
@@ -293,35 +328,9 @@ def schedule_checker():
         schedule.run_pending()
         sleep(1)
 
-# @bot.callback_query_handler(func=lambda call: True)
-# def callback_inline(call):
-# 	try:
-# 		if call.message:
-# 			if call.data == '15min':
-# 				bot.send_message(call.message.chat.id, 'Вот и отличненько 😊')
-# 			elif call.data == '30min':
-# 				bot.send_message(call.message.chat.id, 'Бывает 😢')
- 
-# 			# remove inline buttons
-# 			bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="1. За сколько до сна", reply_markup=None)
- 
-# 			# show alert
-# 			bot.answer_callback_query(callback_query_id=call.id, show_alert=False,
-# 				text="ЭТО ТЕСТОВОЕ УВЕДОМЛЕНИЕ!!11")
- 
-# 	except Exception as e:
-# 		print(repr(e))
-
-# RUN
-
 scheduleThread = Thread(target=schedule_checker)
 scheduleThread.daemon = True
 scheduleThread.start()
 
 bot.polling(none_stop=True)
-
-
-
-
-
 
