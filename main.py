@@ -12,7 +12,7 @@ bot = telebot.TeleBot(config.TOKEN)
 
 beforeTime = time(1, 0)
 idealSleepTime = time(8, 30)
-alarmTime = time(2, 28)
+alarmTime = time(0, 28)
 periodNotifyTime = time(4, 0)
 runFlag = False
 
@@ -20,24 +20,19 @@ runFlag = False
 
 def notifyMain(chatId):
 	print("IN notifyMain LOL!")
- 
 
 	beforeTimeDelta 		= timedelta(hours = beforeTime.hour, 			minutes = beforeTime.minute)
 	idealSleepTimeDelta 	= timedelta(hours = idealSleepTime.hour, 		minutes = idealSleepTime.minute)
 
-	
-
 	nowTime = datetime.now()
-	print(nowTime)
-
-	alarmTimeDelta = datetime.now()
+	alarmTimeScheduled = datetime.now()
 
 	if nowTime.time() > alarmTime:
-		alarmTimeDelta 			= alarmTimeDelta.replace(day = alarmTimeDelta.day + 1, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
-		print("alarmTimeDelta ", alarmTimeDelta)
+		alarmTimeScheduled 			= alarmTimeScheduled.replace(day = alarmTimeScheduled.day + 1, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
+		print("alarmTimeScheduled ", alarmTimeScheduled)
 	else:
-		alarmTimeDelta 			= alarmTimeDelta.replace(day = alarmTimeDelta.day, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
-		print("alarmTimeDelta ", alarmTimeDelta)
+		alarmTimeScheduled 			= alarmTimeScheduled.replace(day = alarmTimeScheduled.day, hour = alarmTime.hour, minute = alarmTime.minute, second = 0, microsecond = 0)
+		print("alarmTimeScheduled ", alarmTimeScheduled)
 
 
 	delta = timedelta(hours = beforeTime.hour)
@@ -48,18 +43,26 @@ def notifyMain(chatId):
 	now = now - delta
 	print(now)
 
-	less = alarmTimeDelta - idealSleepTimeDelta - beforeTimeDelta
+	less = alarmTimeScheduled - idealSleepTimeDelta - beforeTimeDelta
 	print("\nLess = ", less)
 
-	more = alarmTimeDelta - idealSleepTimeDelta + timedelta(hours=2)
+	more = alarmTimeScheduled - idealSleepTimeDelta + timedelta(hours=2)
 	print("More = ", more)
 
-	leftTime = alarmTimeDelta - idealSleepTimeDelta - datetime.now()
+	# Время оставшееся до сна
+	leftTime = alarmTimeScheduled - idealSleepTimeDelta - datetime.now()
+	if leftTime.days < 0:
+		timeToSleep = True
+		# Время оставшееся для сна
+		leftTime = alarmTimeScheduled - datetime.now()
+		print("Уже нужно спать!")
+	else:
+		timeToSleep = False
+	
 	print("leftTime = ", leftTime)
 
-
-
-	if datetime.now() > alarmTimeDelta - idealSleepTimeDelta - beforeTimeDelta and datetime.now() < alarmTimeDelta - idealSleepTimeDelta + timedelta(hours=2):
+	# Если текущее время в промежутке между времененм до сна и временем отхода ко сну + ещё некоторое время
+	if datetime.now() > alarmTimeScheduled - idealSleepTimeDelta - beforeTimeDelta and datetime.now() < alarmTimeScheduled - idealSleepTimeDelta + timedelta(hours=2):
 		global msg
 		try: msg
 		except NameError: msg = None
@@ -70,25 +73,17 @@ def notifyMain(chatId):
 			bot.delete_message(chatId, msg.message_id)
 			print("DEL MSG")
 
-		msg = bot.send_message(chatId, 'Пора спать через ' + ':'.join(str(leftTime).split(':')[:2]) + "! Вставать в " + alarmTime.strftime("%H:%M"))
-	else:
-		try: msg
-		except NameError: msg = None
-
-		if msg is None:
-			print("MSG IS NOT DEFINE!")
+		if timeToSleep is True:
+			msg = bot.send_message(chatId, 'Пора спать! До пробуждения осталось: ' + ':'.join(str(leftTime).split(':')[:2]) + "! Вставать в " + alarmTime.strftime("%H:%M"))
 		else:
-			bot.delete_message(chatId, msg.message_id)
-			print("DEL MSG")
-
-		msg = bot.send_message(chatId, 'Пора спать через ' + ':'.join(str(leftTime).split(':')[:2]) + "! Вставать в " + alarmTime.strftime("%H:%M"))
+			msg = bot.send_message(chatId, 'Пора спать через ' + ':'.join(str(leftTime).split(':')[:2]) + "! Вставать в " + alarmTime.strftime("%H:%M"))
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
 	
 	# keyboard
 	markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-	item1 = types.KeyboardButton("1. За сколько до сна")
+	item1 = types.KeyboardButton("1. Сигнал отхода ко сну")
 	item2 = types.KeyboardButton("2. Идеальное время сна")
 	item3 = types.KeyboardButton("3. Время будильника")
 	item4 = types.KeyboardButton("4. Периодичность уведомлений")
@@ -104,7 +99,7 @@ def welcome(message):
 def keyBut(message):
 	if message.chat.type == 'private':
 		match message.text:
-			case "1. За сколько до сна":
+			case "1. Сигнал отхода ко сну":
 				markup = types.InlineKeyboardMarkup(row_width=1)
 				item1 = types.InlineKeyboardButton("за 15 минут", 		callback_data='before_15min')
 				item2 = types.InlineKeyboardButton("за 30 минут", 		callback_data='before_30min')
@@ -115,7 +110,7 @@ def keyBut(message):
  
 				markup.add(item1, item2, item3, item4, item5, item6)
 
-				bot.send_message(message.chat.id, 'Cколько до сна?', reply_markup=markup)
+				bot.send_message(message.chat.id, 'Начинать присылать уведомления', reply_markup=markup)
 
 			case "2. Идеальное время сна":
 				markup = types.InlineKeyboardMarkup(row_width=1)
@@ -124,7 +119,7 @@ def keyBut(message):
 				item3 = types.InlineKeyboardButton("8 часов", 			callback_data='ideal_8hour')
 				item4 = types.InlineKeyboardButton("8 часов 30 минут", 	callback_data='ideal_8hour30min')
 				item5 = types.InlineKeyboardButton("9 часов", 			callback_data='ideal_9hour')
-				item6 = types.InlineKeyboardButton("9 часов", 			callback_data='ideal_9hour30min')
+				item6 = types.InlineKeyboardButton("9 часов 30 минут",  callback_data='ideal_9hour30min')
  
 				markup.add(item1, item2, item3, item4, item5, item6)
 
@@ -132,14 +127,16 @@ def keyBut(message):
 				
 			case "3. Время будильника":
 				markup = types.InlineKeyboardMarkup(row_width=1)
-				item1 = types.InlineKeyboardButton("7 часов", 			callback_data='alarm_7Hour')
-				item2 = types.InlineKeyboardButton("7 часов 30 минут", 	callback_data='alarm_7hour30min')
-				item3 = types.InlineKeyboardButton("8 часов", 			callback_data='alarm_8hour')
-				item4 = types.InlineKeyboardButton("8 часов 30 минут", 	callback_data='alarm_8hour30min')
-				item5 = types.InlineKeyboardButton("9 часов", 			callback_data='alarm_9hour')
-				item6 = types.InlineKeyboardButton("9 часов", 			callback_data='alarm_9hour30min')
+				item1 = types.InlineKeyboardButton("6 часов", 			callback_data='alarm_6Hour')
+				item2 = types.InlineKeyboardButton("6 часов 30 минут", 	callback_data='alarm_6Hour30min')
+				item3 = types.InlineKeyboardButton("7 часов", 			callback_data='alarm_7Hour')
+				item4 = types.InlineKeyboardButton("7 часов 30 минут", 	callback_data='alarm_7hour30min')
+				item5 = types.InlineKeyboardButton("8 часов", 			callback_data='alarm_8hour')
+				item6 = types.InlineKeyboardButton("8 часов 30 минут", 	callback_data='alarm_8hour30min')
+				item7 = types.InlineKeyboardButton("9 часов", 			callback_data='alarm_9hour')
+				item8 = types.InlineKeyboardButton("9 часов 30 минут",	callback_data='alarm_9hour30min')
  
-				markup.add(item1, item2, item3, item4, item5, item6)
+				markup.add(item1, item2, item3, item4, item5, item6, item7, item8)
 
 				bot.send_message(message.chat.id, 'Время будильника', reply_markup=markup)
 			
@@ -249,6 +246,18 @@ def ideal_9hour30min_pressed(call: types.CallbackQuery):
 
 
 # ------------------ALARM TIME------------------
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_6Hour")
+def alarm_7Hour_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>6 часов</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(6, 0)
+
+@bot.callback_query_handler(func=lambda call: call.data == "alarm_6Hour30min")
+def alarm_7Hour_pressed(call: types.CallbackQuery):
+	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>6 часов 30 минут</b>", parse_mode='html',)
+	global alarmTime
+	alarmTime = time(6, 30)
+
 @bot.callback_query_handler(func=lambda call: call.data == "alarm_7Hour")
 def alarm_7Hour_pressed(call: types.CallbackQuery):
 	bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, text="Будильник прозвенит в: <b>7 часов</b>", parse_mode='html',)
